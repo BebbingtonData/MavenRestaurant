@@ -1,0 +1,266 @@
+
+-- Objective One: Explore the items table
+-- 1. View the menu items table
+
+select
+	*
+from
+	menu_items;
+
+
+-- 2. Find number of items on menu
+
+select
+	count(item_name)
+from
+	menu_items;
+
+-- 3. What are the most and least expensive items on the menu?
+select
+		*
+from
+	menu_items
+order by price
+limit 1;
+    
+select
+	*
+from
+	menu_items
+order by price desc
+limit 1;
+    
+
+-- 4. How many Italian dishes are on the menu?
+select
+	count(*)
+from 
+	menu_items
+where
+	category = 'Italian';
+    
+-- 5. What are the most and least expensive dishes on the menu?
+
+select 
+	*
+from
+	menu_items
+where
+	category = 'Italian'
+order by
+	price
+limit 1;
+
+select 
+	*
+from
+	menu_items
+where
+	category = 'Italian'
+order by
+	price desc
+limit 1;
+
+-- 6. How many dishes are in each category?
+
+select
+	category, count(menu_item_id) as num_dishes
+from
+	menu_items
+group by category;
+
+-- 7. What is the average price dish per category?
+
+select
+	category, avg(price) as avg_price
+from
+	menu_items
+group by category;
+
+
+
+-- Objective Two: Explore the objects table
+-- 1. View the order_details table
+
+select
+	*
+from
+	order_details;
+    
+-- 2. What is the date range of the table?
+
+select
+	min(order_date), max(order_date)
+from
+	order_details;
+
+-- 3. How many orders in this date range?
+
+select
+	count(distinct order_id) as num_orders
+from
+	order_details;
+
+-- 4. How many items ordered in this date range?
+
+select
+	count(order_details_id) as num_items
+from
+	order_details;
+    
+-- 5. Which orders had the most number of items?
+
+select
+	order_id, count(order_details_id) as items_ordered
+from
+	order_details
+group by 
+	order_id
+order by items_ordered desc;
+
+-- 6. How many orders had more than 12 items?
+	
+with big_orders
+as(	
+select
+	order_id, count(item_id) as items_ordered
+from
+	order_details
+group by 
+	order_id
+)
+select
+	count(order_id)
+from
+	big_orders
+where
+	items_ordered > 12;
+
+
+-- Alternative answer
+
+select
+	count(*)
+from
+  
+(select
+	order_id, count(item_id) as items_ordered
+from
+	order_details
+group by 
+	order_id
+having items_ordered > 12) as num_orders;
+
+-- Objective Three: Analyse Customer Behaviour
+-- 1. Combine the tables
+
+select
+	*
+from
+	order_details orders
+left join 
+	menu_items menu
+on 	
+	orders.item_id = menu.menu_item_id;
+    
+-- 2. What were the most and least ordered items and what category were they in?
+
+select
+	item_name, count(item_id) as times_ordered, category
+from
+	order_details orders
+left join 
+	menu_items menu
+on 	
+	orders.item_id = menu.menu_item_id
+group by
+	item_name, category
+order by
+	times_ordered;
+
+select
+	item_name, count(item_id) as times_ordered, category
+from
+	order_details orders
+left join 
+	menu_items menu
+on 	
+	orders.item_id = menu.menu_item_id
+group by
+	item_name, category
+order by
+	times_ordered desc;
+    
+-- 3. What 5 orders spent the most money?
+
+select
+	order_id, sum(price) as order_spend
+from
+	order_details orders
+left join 
+	menu_items menu
+on 	
+	orders.item_id = menu.menu_item_id
+group by
+	order_id
+order by
+	order_spend desc
+limit 5;
+
+-- 4. What items were purchased in the highest spend order?
+
+select
+	order_id, item_name
+from
+	order_details orders
+left join 
+	menu_items menu
+on 	
+	orders.item_id = menu.menu_item_id
+where
+	order_id = 440;
+    
+-- 4.5 What insights can be gained from details of the highest spend order?
+
+select
+	category, count(item_id) as num_items
+from
+	order_details orders
+left join 
+	menu_items menu
+on 	
+	orders.item_id = menu.menu_item_id
+where
+	order_id = 440
+group by
+	category;
+    
+    
+-- 5. View the details of the top 5 spend orders
+
+select
+	*
+from
+	order_details orders
+left join 
+	menu_items menu
+on 	
+	orders.item_id = menu.menu_item_id
+where
+	order_id in (440, 2075, 1957, 330, 2675);
+
+-- 5.5 What insights can be gained from the top 5 spend orders
+
+select
+	category, count(item_id) as num_items
+from
+	order_details orders
+left join 
+	menu_items menu
+on 	
+	orders.item_id = menu.menu_item_id
+where
+	order_id in (440, 2075, 1957, 330, 2675)
+group by
+	category;
+    
